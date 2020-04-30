@@ -19,7 +19,7 @@ class ViewController: UIViewController, MKMapViewDelegate {
 
         // Set a content view controller
         fpc.set(contentViewController: searchVC)
-        fpc.track(scrollView: searchVC.tableView)
+        //fpc.track(scrollView: searchVC.tableView)
 
         setupMapView()
 
@@ -66,6 +66,7 @@ class ViewController: UIViewController, MKMapViewDelegate {
         addChild(fpc)
 
         fpc.behavior = SearchPaneliPadBehavior()
+        fpc.layout = SearchPaneliPadLeftLayout()
 
         fpc.view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         fpc.view.layer.cornerRadius = 10.0
@@ -75,8 +76,11 @@ class ViewController: UIViewController, MKMapViewDelegate {
             fpc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8.0),
             fpc.view.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 8.0),
             fpc.view.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 0.0),
-            fpc.view.widthAnchor.constraint(equalToConstant: 375),
+            fpc.view.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor, constant: -8.0),
         ])
+        fpc.surfaceView.containerMargins = UIEdgeInsets(top: 0, left: .leastNonzeroMagnitude, bottom: 0, right: 0)
+        fpc.surfaceView.contentPadding = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: fpc.surfaceView.grabberAreaOffset)
+        fpc.contentMode = .static
         fpc.show(animated: false) { [weak self] in
             guard let self = self else { return }
             self.didMove(toParent: self)
@@ -250,9 +254,10 @@ class PadPanelDelegate: NSObject, FloatingPanelControllerDelegate {
         }
     }
 
-    func floatingPanel(_ vc: FloatingPanelController, layoutFor newCollection: UITraitCollection) -> FloatingPanelLayout {
-        SearchPaneliPadLayout()
-    }
+//    func floatingPanel(_ vc: FloatingPanelController, layoutFor newCollection: UITraitCollection) -> FloatingPanelLayout {
+//        SearchPaneliPadLeftLayout()
+//        //SearchPaneliPadLayout()
+//    }
 }
 
 class SearchPaneliPadLayout: FloatingPanelLayout {
@@ -282,5 +287,19 @@ class SearchPaneliPadBehavior: FloatingPanelBehavior {
     }
     func shouldProjectMomentum(_ fpc: FloatingPanelController, to proposedTargetPosition: FloatingPanelState) -> Bool {
         return true
+    }
+}
+
+class SearchPaneliPadLeftLayout: FloatingPanelLayout {
+    let anchorPosition: FloatingPanelPosition  = .left
+    let initialState: FloatingPanelState = .tip
+    var stateAnchors: [FloatingPanelState : FloatingPanelLayoutAnchoring] {
+        return [
+            .tip: FloatingPanelLayoutAnchor(absoluteInset: 44.0, edge: .left, referenceGuide: .superview),
+            .full: FloatingPanelLayoutAnchor(absoluteInset: 375, edge: .left, referenceGuide: .superview)
+        ]
+    }
+    func backdropAlpha(for state: FloatingPanelState) -> CGFloat {
+        return 0.0
     }
 }
