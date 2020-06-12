@@ -6,7 +6,7 @@ import FloatingPanel
 
 class ViewController: UIViewController, MKMapViewDelegate {
     lazy var fpc = FloatingPanelController()
-    lazy var fpcDelegate: FloatingPanelControllerDelegate = (traitCollection.userInterfaceIdiom == .pad) ? PadPanelDelegate(owner: self) : PhonePanelDelegate(owner: self)
+    lazy var fpcDelegate: FloatingPanelControllerDelegate & UIGestureRecognizerDelegate = (traitCollection.userInterfaceIdiom == .pad) ? PadPanelDelegate(owner: self) : PhonePanelDelegate(owner: self)
     lazy var searchVC = storyboard?.instantiateViewController(withIdentifier: "SearchPanel") as! SearchPanelViewController
 
     @IBOutlet weak var mapView: MKMapView!
@@ -19,7 +19,6 @@ class ViewController: UIViewController, MKMapViewDelegate {
 
         // Set a content view controller
         fpc.set(contentViewController: searchVC)
-        //fpc.track(scrollView: searchVC.tableView)
 
         setupMapView()
 
@@ -68,6 +67,8 @@ class ViewController: UIViewController, MKMapViewDelegate {
         fpc.behavior = SearchPaneliPadBehavior()
         fpc.layout = SearchPaneliPadLeftLayout()
 
+        fpc.panGestureRecognizer.delegateProxy = fpcDelegate
+
         fpc.view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         fpc.view.layer.cornerRadius = 10.0
         fpc.view.frame = view.bounds // Needed for a correct safe area configuration
@@ -90,6 +91,7 @@ class ViewController: UIViewController, MKMapViewDelegate {
     }
 
     func layoutPanelForPhone() {
+        fpc.track(scrollView: searchVC.tableView) // Only for iPhone
         fpc.addPanel(toParent: self, animated: true)
         let appearance = FloatingPanelSurfaceAppearance()
         appearance.cornerRadius = 8.0
@@ -132,7 +134,7 @@ extension ViewController: UISearchBarDelegate {
 
 // MARK: - iPhone
 
-class PhonePanelDelegate: NSObject, FloatingPanelControllerDelegate {
+class PhonePanelDelegate: NSObject, FloatingPanelControllerDelegate, UIGestureRecognizerDelegate {
     unowned let owner: ViewController
 
     init(owner: ViewController) {
@@ -226,7 +228,7 @@ class SearchPanelLandscapeLayout: FloatingPanelLayout {
 
 // MARK: - iPad
 
-class PadPanelDelegate: NSObject, FloatingPanelControllerDelegate {
+class PadPanelDelegate: NSObject, FloatingPanelControllerDelegate, UIGestureRecognizerDelegate {
     class PadBottomLayout: FloatingPanelBottomLayout {
         override func backdropAlpha(for state: FloatingPanelState) -> CGFloat {
             return 0.0
@@ -254,10 +256,9 @@ class PadPanelDelegate: NSObject, FloatingPanelControllerDelegate {
         }
     }
 
-//    func floatingPanel(_ vc: FloatingPanelController, layoutFor newCollection: UITraitCollection) -> FloatingPanelLayout {
-//        SearchPaneliPadLeftLayout()
-//        //SearchPaneliPadLayout()
-//    }
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return false
+    }
 }
 
 class SearchPaneliPadLayout: FloatingPanelLayout {

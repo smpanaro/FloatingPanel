@@ -149,6 +149,8 @@ class SampleListViewController: UIViewController {
             tapGesture.cancelsTouchesInView = false
             tapGesture.numberOfTapsRequired = 2
             mainPanelVC.surfaceView.addGestureRecognizer(tapGesture)
+        case .showNestedScrollView:
+            mainPanelVC.panGestureRecognizer.delegateProxy = self
         case .showPageContentView:
             if let page = (mainPanelVC.contentViewController as? UIPageViewController)?.viewControllers?.first {
                 mainPanelVC.track(scrollView: (page as! DebugTableViewController).tableView)
@@ -319,6 +321,7 @@ extension SampleListViewController: UITableViewDelegate {
             pages = [UIColor.blue, .red, .green].compactMap({ (color) -> UIViewController in
                 let page = FloatingPanelController(delegate: self)
                 page.view.backgroundColor = color
+                page.panGestureRecognizer.delegateProxy = self
                 page.show()
                 return page
             })
@@ -454,18 +457,6 @@ extension SampleListViewController: FloatingPanelControllerDelegate {
         }
     }
 
-    func floatingPanel(_ vc: FloatingPanelController, shouldRecognizeSimultaneouslyWith gestureRecognizer: UIGestureRecognizer) -> Bool {
-        switch currentMenu {
-        case .showNestedScrollView:
-            return (vc.contentViewController as? NestedScrollViewController)?.nestedScrollView.gestureRecognizers?.contains(gestureRecognizer) ?? false
-        case .showPageView:
-            // Tips: Need to allow recognizing the pan gesture of UIPageViewController simultaneously.
-            return true
-        default:
-            return false
-        }
-    }
-
     func floatingPanelDidRemove(_ vc: FloatingPanelController) {
         switch vc {
         case settingsPanelVC:
@@ -473,6 +464,23 @@ extension SampleListViewController: FloatingPanelControllerDelegate {
         default:
             break
         }
+    }
+}
+
+extension SampleListViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        switch currentMenu {
+        case .showNestedScrollView:
+            return true
+        case .showPageView:
+            // Tips: Need to allow recognizing the pan gesture of UIPageViewController simultaneously.
+            return true
+        default:
+            return false
+        }
+    }
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return false
     }
 }
 
