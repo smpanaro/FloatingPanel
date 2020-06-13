@@ -5,9 +5,13 @@ import MapKit
 import FloatingPanel
 
 class ViewController: UIViewController, MKMapViewDelegate {
+    typealias PanelDelegate = FloatingPanelControllerDelegate & UIGestureRecognizerDelegate
+
     lazy var fpc = FloatingPanelController()
-    lazy var fpcDelegate: FloatingPanelControllerDelegate & UIGestureRecognizerDelegate = (traitCollection.userInterfaceIdiom == .pad) ? PadPanelDelegate(owner: self) : PhonePanelDelegate(owner: self)
-    lazy var searchVC = storyboard?.instantiateViewController(withIdentifier: "SearchPanel") as! SearchPanelViewController
+    lazy var fpcDelegate: PanelDelegate =
+        (traitCollection.userInterfaceIdiom == .pad) ? PadPanelDelegate(owner: self) : PhonePanelDelegate(owner: self)
+    lazy var searchVC =
+        storyboard?.instantiateViewController(withIdentifier: "SearchPanel") as! SearchPanelViewController
 
     @IBOutlet weak var mapView: MKMapView!
 
@@ -65,23 +69,25 @@ class ViewController: UIViewController, MKMapViewDelegate {
         addChild(fpc)
 
         fpc.behavior = SearchPaneliPadBehavior()
+
+        /* Set up Layoout */
+        // fpc.layout = SearchPaneliPadLayout()
+        /* Or */
         fpc.layout = SearchPaneliPadLeftLayout()
+        fpc.contentMode = .static
+        /* End */
 
         fpc.panGestureRecognizer.delegateProxy = fpcDelegate
+        fpc.isRemovalInteractionEnabled = true
 
-        fpc.view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-        fpc.view.layer.cornerRadius = 10.0
         fpc.view.frame = view.bounds // Needed for a correct safe area configuration
         fpc.view.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            fpc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8.0),
-            fpc.view.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 8.0),
-            fpc.view.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 0.0),
-            fpc.view.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor, constant: -8.0),
+            fpc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0.0),
+            fpc.view.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor, constant: 0.0 ),
+            fpc.view.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 0.0),
+            fpc.view.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor, constant: 0.0), // for left positioned panel
         ])
-        fpc.surfaceView.containerMargins = UIEdgeInsets(top: 0, left: .leastNonzeroMagnitude, bottom: 0, right: 0)
-        fpc.surfaceView.contentPadding = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: fpc.surfaceView.grabberAreaOffset)
-        fpc.contentMode = .static
         fpc.show(animated: false) { [weak self] in
             guard let self = self else { return }
             self.didMove(toParent: self)
@@ -111,6 +117,10 @@ class ViewController: UIViewController, MKMapViewDelegate {
         appearance.shadows = [shadow]
         appearance.backgroundColor = .clear
         fpc.surfaceView.appearance = appearance
+        fpc.surfaceView.containerMargins = UIEdgeInsets(top: .leastNonzeroMagnitude,
+                                                        left: .leastNonzeroMagnitude,
+                                                        bottom: 0.0,
+                                                        right: 0.0)
     }
 }
 
@@ -242,14 +252,7 @@ class PadPanelDelegate: NSObject, FloatingPanelControllerDelegate, UIGestureReco
     }
 
     func floatingPanel(_ vc: FloatingPanelController, layoutFor size: CGSize) -> FloatingPanelLayout {
-        let isLandscape: Bool = {
-            if #available(iOS 13.0, *) {
-                return vc.view.window?.windowScene?.interfaceOrientation.isLandscape ?? false
-            } else {
-                return UIApplication.shared.statusBarOrientation.isLandscape
-            }
-        }()
-        if isLandscape {
+        if vc.isLandscape {
             return SearchPaneliPadLayout()
         } else {
             return PadBottomLayout()
@@ -273,6 +276,12 @@ class SearchPaneliPadLayout: FloatingPanelLayout {
     }
     func backdropAlpha(for state: FloatingPanelState) -> CGFloat {
         return 0.0
+    }
+    func prepareLayout(surfaceView: UIView, in view: UIView) -> [NSLayoutConstraint] {
+        return [
+            surfaceView.leftAnchor.constraint(equalTo: view.leftAnchor),
+            surfaceView.widthAnchor.constraint(equalToConstant: 375),
+        ]
     }
 }
 
@@ -302,5 +311,17 @@ class SearchPaneliPadLeftLayout: FloatingPanelLayout {
     }
     func backdropAlpha(for state: FloatingPanelState) -> CGFloat {
         return 0.0
+    }
+}
+
+// MARK : - Utils
+
+extension FloatingPanelController {
+    var isLandscape: Bool {
+        if #available(iOS 13.0, *) {
+            return view.window?.windowScene?.interfaceOrientation.isLandscape ?? false
+        } else {
+            return UIApplication.shared.statusBarOrientation.isLandscape
+        }
     }
 }
