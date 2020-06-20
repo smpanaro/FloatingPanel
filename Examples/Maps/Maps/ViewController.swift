@@ -157,16 +157,16 @@ class PhonePanelDelegate: NSObject, FloatingPanelControllerDelegate {
     }
 
     func floatingPanelDidMove(_ vc: FloatingPanelController) {
-        debugPrint("surfaceEdgeLocation: ", vc.surfaceEdgeLocation)
-        let loc = vc.surfaceEdgeLocation
+        debugPrint("surfaceLocation: ", vc.surfaceLocation)
+        let loc = vc.surfaceLocation
 
         if vc.isDecelerating == false {
-            let minY = vc.surfaceEdgeLocation(for: .full).y - 6.0
-            let maxY = vc.surfaceEdgeLocation(for: .tip).y + 6.0
-            vc.surfaceEdgeLocation = CGPoint(x: loc.x, y: min(max(loc.y, minY), maxY))
+            let minY = vc.surfaceLocation(for: .full).y - 6.0
+            let maxY = vc.surfaceLocation(for: .tip).y + 6.0
+            vc.surfaceLocation = CGPoint(x: loc.x, y: min(max(loc.y, minY), maxY))
         }
 
-        let tipY = vc.surfaceEdgeLocation(for: .tip).y
+        let tipY = vc.surfaceLocation(for: .tip).y
         if loc.y > tipY - 44.0 {
             let progress = max(0.0, min((tipY  - loc.y) / 44.0, 1.0))
             owner.searchVC.tableView.alpha = progress
