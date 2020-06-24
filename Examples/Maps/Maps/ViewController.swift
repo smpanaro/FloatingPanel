@@ -71,22 +71,22 @@ class ViewController: UIViewController, MKMapViewDelegate {
         fpc.behavior = SearchPaneliPadBehavior()
 
         /* Set up Layoout */
-        // fpc.layout = SearchPaneliPadLayout()
+        fpc.layout = SearchPaneliPadLayout()
         /* Or */
-        fpc.layout = SearchPaneliPadLeftLayout()
-        fpc.contentMode = .static
+        // fpc.layout = SearchPaneliPadLeftLayout()
+        // fpc.contentMode = .static
         /* End */
 
         fpc.panGestureRecognizer.delegateProxy = fpcDelegate
-        fpc.isRemovalInteractionEnabled = true
+        //fpc.isRemovalInteractionEnabled = true
 
         fpc.view.frame = view.bounds // Needed for a correct safe area configuration
         fpc.view.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             fpc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0.0),
             fpc.view.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor, constant: 0.0 ),
-            fpc.view.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 0.0),
-            fpc.view.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor, constant: 0.0), // for left positioned panel
+            fpc.view.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 0.0),
+            fpc.view.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor, constant: 0.0),
         ])
         fpc.show(animated: false) { [weak self] in
             guard let self = self else { return }
@@ -118,7 +118,7 @@ class ViewController: UIViewController, MKMapViewDelegate {
         appearance.backgroundColor = .clear
         fpc.surfaceView.appearance = appearance
         fpc.surfaceView.containerMargins = UIEdgeInsets(top: .leastNonzeroMagnitude,
-                                                        left: .leastNonzeroMagnitude,
+                                                        left: 16,
                                                         bottom: 0.0,
                                                         right: 0.0)
     }
@@ -242,6 +242,12 @@ class PadPanelDelegate: NSObject, FloatingPanelControllerDelegate, UIGestureReco
     class PadBottomLayout: FloatingPanelBottomLayout {
         override func backdropAlpha(for state: FloatingPanelState) -> CGFloat {
             return 0.0
+        }
+        override func prepareLayout(surfaceView: UIView, in view: UIView) -> [NSLayoutConstraint] {
+            return [
+                surfaceView.leftAnchor.constraint(equalTo: view.leftAnchor),
+                surfaceView.widthAnchor.constraint(equalToConstant: 375),
+            ]
         }
     }
 
