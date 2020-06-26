@@ -156,7 +156,6 @@ public class FloatingPanelSurfaceView: UIView {
                                          grabberHandleWidthConstraint,
                                          grabberHandleHeightConstraint])
             setNeedsUpdateConstraints()
-            grabberHandle.layer.cornerRadius = grabberHandleSize.height / 2
         }
     }
 
@@ -303,6 +302,8 @@ public class FloatingPanelSurfaceView: UIView {
         updateShadow()
         updateCornerRadius()
         updateBorder()
+
+        grabberHandle.layer.cornerRadius = grabberHandleSize.height / 2
     }
 
     public override var intrinsicContentSize: CGSize {
