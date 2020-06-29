@@ -248,9 +248,6 @@ class FloatingPanelCore: NSObject, UIGestureRecognizerDelegate {
                 scrollGestureRecognizers.contains(otherGestureRecognizer) {
                 switch otherGestureRecognizer {
                 case scrollView.panGestureRecognizer:
-                    if grabberAreaFrame.contains(gestureRecognizer.location(in: gestureRecognizer.view)) {
-                        return false
-                    }
                     return allowScrollPanGesture(for: scrollView)
                 default:
                     return false
