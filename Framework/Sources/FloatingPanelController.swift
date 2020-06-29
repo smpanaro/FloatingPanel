@@ -521,6 +521,26 @@ open class FloatingPanelController: UIViewController {
         }
     }
 
+    /// Presents the panel from the specified controller with a particular presentation style.
+    /// - Parameters:
+    ///     - animated: Pass true to animate the presentation; otherwise, pass false.
+    ///     - modalPresentationStyle: The modalPresentationStyle to use. To use `.custom` use `present(_:animated:completion:)` on the from controller directly.
+    public func presentPanel(from controller: UIViewController, animated: Bool = true, modalPresentationStyle: UIModalPresentationStyle = .overCurrentContext) {
+        precondition(modalPresentationStyle != .custom, "Call `present(_:animated:completion:)` on \(controller) directly to use the provided transitioningDelegate.")
+        // Replace the default custom presentation style and delegate.
+        self.modalPresentationStyle = modalPresentationStyle
+        self.transitioningDelegate = nil
+
+        self.surfaceView.translatesAutoresizingMaskIntoConstraints = false
+        self.view.setNeedsLayout()
+        self.view.layoutIfNeeded()
+
+        controller.present(self, animated: false, completion: { [weak self] in
+            (self?.view as? FloatingPanelPassThroughView)?.eventForwardingView = self?.presentingViewController?.view
+            self?.show(animated: animated, completion: nil)
+        })
+    }
+
     /// Moves the position to the specified position.
     /// - Parameters:
     ///     - to: Pass a FloatingPanelPosition value to move the surface view to the position.
